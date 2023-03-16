@@ -1,0 +1,30 @@
+Nume: Pavel Elena-Alexandra 342C4
+
+Task 2 - Differential Cryptanalysis
+
+Aceasta analiza este bazata pe delta (diferentialul), ales de mine
+ca fiind: ffff ffff 0000 0000.
+
+Tema e impartita in 2:
+1. Generare de mesaje si ciphertext
+2. Identificarea celor 4 bytes ale cheii k3
+
+1. Generare de mesaje si ciphertext
+Pentru a spori puterea de calcul si se vor genera 2^32 perechi de mesaje.
+Mesajul m1 este pur random generat cu 64 de biti, iar m2 va fi generat prin
+folosit functia xor astfel: m2 = m1 xor delta.
+Astfel, vom avea primii 32 de biti din m2 foarte diferiti de m1, iar
+ceilalti sunt la fel ca in m1.
+
+2. Identificarea celor 4 bytes ale cheii k3
+
+Pentru fiecare byte din k3, avem 256 de valori posibile. Pentru fiecare
+valoare vom calcula punctule intermediare pentru fiecare ciphertext din
+C1 si C2, iar diferentialul delta* = es1* xor es2* trebuie sa fie egal
+cu 'ff' pentru a coincide cu deltax calculat. Pentru a afla byte-ul bun
+se calculeaza maximul de perechi de mesaje gasite.
+
+Punctele intermediare sunt calculate astfel:
+E’(k, m) = R3 XOR S-box(k3 XOR L3)
+
+Cheia k3 gasita este 12345678.

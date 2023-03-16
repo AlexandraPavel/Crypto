@@ -1,0 +1,58 @@
+Nume: Pavel Elena-Alexandra 342C4
+
+Task 1 - Break authentication
+
+Primul lucru pe care l-am identificat a fost ca pentru user-ul Ephvuln
+putem sa aflam secretul. Iar tokenul pe care trebuie sa-l prelucrez
+trebuie sa fie mai mic decat 16 bytes.
+
+Am realizat o analiza si a modului de criptare pentru a intelege ce se
+cunoaste dintr-un token deja generat. In functia encrypt observam ca prima
+parte din ciphertext este criptat cu functia xor care e usor de spart,
+in functia decypt aceeasi operatie e folosita. Astfel, singura metoda
+ar fi sa harcodam userul Ephvuln in prima parte a token-ului pentru
+a putea sparge codificarea. O vom realiza astfel:
+
+c = token xor "Anonymous" xor "Ephvuln"
+
+Pentru a putea ajunge la secret observam ca token-ul mai are 2 parti
+SERVER_PUBLIC_BANNER si integrety.
+
+In functia decrypt SERVER_PUBLIC_BANNER este verificat cu sine.
+Singurul lucru care trebuie identificat este lungimea acestuia.
+In cazul tag-ului de integrity, se verifica si corectitudinea lui.
+Astfel, pentru integrity vom folosi un brutforce pentru a indentifica
+bitii corecti, iar pentru lungimea sa, va trebui sa aflam prima data
+lungimea SERVER_PUBLIC_BANNER si va fi calculata astfel:
+len_integrity = 16 - len(ciphertext) - len(SERVER_PUBLIC_BANNER)
+
+Identificare lungime SERVER_PUBLIC_BANNER:
+  Observam ca pentru o lungime gresita a banner-ul primim mesajul
+"Wrong server secret!", iar pentru un integrity gresit, fie lungime,
+fie valoare gresita, primim "Failed integrity check!".
+  Astfel, putem sa construim noul atac pentru lungime:
+    - pentru a afla care e punctul e start vom trimite biti + token
+pentru a observa unde vom nimeri punctul de start:
+  X + token[1:]
+  XX + token[2:]
+  ...
+  XX .. X + token[n:] --> Wrong server secret! => ca am nimerit inceputul
+                                                Bannerului
+
+    - pentru a afla punctul de sfarsit, vom adauga biti la sfarsit
+pana cand raspunsul va fi diferit de "Wrong server secret!"
+  token[:1] + X
+  token[:2] + XX
+  ...
+  token[:m] + XX..X => "Failed integrity check!" => am aflat astfel
+
+  lungimea Server Bannerului [start:end]
+
+Ultima etapa ar fi identificarea tagului de integritate:
+  - realizand calculul tag-ul are lungime 1, iar cand vom nimeri
+byte-ul rezultatul va fi diferit de "Failed integrity check!" si
+vom primi flagul:
+
+Lungimea Bannerului este 6.
+Am obtinut CTF{Ez_T4g_Cr4ftyng}, iar flagul este Ez_T4g_Cr4ftyng.
+
